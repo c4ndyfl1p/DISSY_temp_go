@@ -104,8 +104,23 @@ func decrypt(aeskey []byte, ct2 []byte) []byte {
 
 }
 
-func writeToFile(aesKey []byte, ciphertextFile string) string {
-	return ""
+func writeToFile(plaintext []byte, filename string) {
+	// Create and open the file for writing
+	file, err := os.Create(filename)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return
+	}
+	defer file.Close()
+
+	// Write bytes to the file
+	bytesWritten, err := file.Write(plaintext)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+
+	fmt.Printf("Successfully wrote %d bytes to the file.\n", bytesWritten)
 }
 
 func main() {
@@ -130,5 +145,9 @@ func main() {
 	print("-------------------------------------")
 	fmt.Println(string(recoveredPt))
 
+	recoveredPt = recoveredPt[0:numberOfBytesRead]
 	//write to ciphertext to file
+
+	writeToFile(recoveredPt, "output2.txt")
+
 }
