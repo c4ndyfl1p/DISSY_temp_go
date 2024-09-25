@@ -22,6 +22,7 @@ func keyGen() []byte {
 }
 
 func readFromFile(filename string) ([]byte, int) {
+	// return []byte , no of bytes read
 	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
@@ -58,50 +59,35 @@ func readFromFile(filename string) ([]byte, int) {
 
 }
 
-func encryptToFile(aesKey []byte, plaintextFile string) string {
-	return ""
-}
+func encrypt(aesKey []byte, plaintext []byte) []byte {
 
-func decryptToFile(aesKey []byte, ciphertextFile string) string {
-	return ""
-}
-
-func main() {
-	fmt.Println("Hello, World!")
-	// Open the file for reading
-
-	pt_from_file, numberOfBytesRead := readFromFile("example.txt")
-	fmt.Println(pt_from_file, numberOfBytesRead)
-
-	fmt.Println("------------------------------")
-	aeskey := keyGen()
-	fmt.Println(aeskey)
-
-	pt := make([]byte, Blocksize)
-	pt[0] = 1
-	pt[1] = 2
-	pt[15] = 15
-
-	fmt.Println("plaintext:", pt)
-
-	cipher1, err := aes.NewCipher(aeskey)
+	cipher1, err := aes.NewCipher(aesKey)
 	if err != nil {
 		fmt.Println("err: with aes.NewCipher", err)
 	}
 
-	ct := make([]byte, Blocksize)
+	// hardcoding the ct size for now, might need to change it later
 	temp_ct := make([]byte, Blocksize*6)
 
 	for i := 0; i <= 16; i += Blocksize {
 		//fmt.Println(i, i+Blocksize)
-		temp_pt := pt_from_file[i : i+Blocksize]
+		temp_pt := plaintext[i : i+Blocksize]
 		cipher1.Encrypt(temp_ct[i:i+Blocksize], temp_pt)
 
 		fmt.Println("temp_pt: ", temp_pt, len(temp_pt))
 		fmt.Println("temp_ct:", temp_ct[i:i+Blocksize], len(temp_ct))
 	}
 
+	return temp_ct
+}
+
+func decrypt(aeskey []byte, ct2 []byte) []byte {
 	// for decryption
+	//temp_ct := make([]byte, Blocksize*6)
+	cipher1, err := aes.NewCipher(aeskey)
+	if err != nil {
+		fmt.Println("err: with aes.NewCipher", err)
+	}
 
 	recoverdPt2 := make([]byte, Blocksize*6)
 
@@ -109,18 +95,40 @@ func main() {
 
 	for i := 0; i <= 16; i += Blocksize {
 		//fmt.Println(i, i+Blocksize)
-		cipher1.Decrypt(recoverdPt2[i:i+Blocksize], temp_ct[i:i+Blocksize])
+		cipher1.Decrypt(recoverdPt2[i:i+Blocksize], ct2[i:i+Blocksize])
 
 		fmt.Println("recovered_pt2:", recoverdPt2[i:i+Blocksize])
 	}
 
-	cipher1.Encrypt(ct, pt)
+	return recoverdPt2
 
-	fmt.Println(ct)
+}
 
-	recoverdPt := make([]byte, Blocksize)
-	cipher1.Decrypt(recoverdPt, ct)
-	fmt.Println(recoverdPt)
+func writeToFile(aesKey []byte, ciphertextFile string) string {
+	return ""
+}
+
+func main() {
+	fmt.Println("Hello, World!")
+
+	// read plaintext from file and load into bytes
+	pt_from_file, numberOfBytesRead := readFromFile("example.txt")
+	fmt.Println(pt_from_file, numberOfBytesRead)
+
+	fmt.Println("------------------------------")
+
+	// generate aes key
+	aeskey := keyGen()
+	fmt.Println(aeskey)
+
+	// encrypt the plaintext(byte)
+	ct2 := encrypt(aeskey, pt_from_file)
+	fmt.Println(ct2)
+
+	// decrypt the ciphertext(byte)
+	recoveredPt := decrypt(aeskey, ct2)
 	print("-------------------------------------")
-	fmt.Println(string(recoverdPt2))
+	fmt.Println(string(recoveredPt))
+
+	//write to ciphertext to file
 }
